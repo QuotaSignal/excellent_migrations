@@ -8,7 +8,8 @@ defmodule ExcellentMigrations.DangersDetector do
     AstParser,
     AstParserFullDetections,
     ConfigCommentsParser,
-    DangersFilter
+    DangersFilter,
+    PostgresVersion
   }
 
   @type ast :: list | tuple | atom | String.t()
@@ -76,7 +77,11 @@ defmodule ExcellentMigrations.DangersDetector do
       |> Enum.concat()
 
     parsed_safety_assured = ConfigCommentsParser.parse(source_code)
-    skipped_types = Application.get_env(:excellent_migrations, :skip_checks, [])
+
+    skipped_types =
+      Application.get_env(:excellent_migrations, :skip_checks, []) ++
+        PostgresVersion.safe_skips()
+
     DangersFilter.filter_dangers(parsed_dangers, parsed_safety_assured, skipped_types)
   end
 end
